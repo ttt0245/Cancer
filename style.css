@@ -1,0 +1,19 @@
+body {
+  text-align: center;
+  font-family: sans-serif;
+}
+
+#circle {
+  width: 250px;
+  height: 250px;
+  border: 3px solid black;
+  border-radius: 50%;
+  margin: 100px auto;
+  position: relative;
+  touch-action: none;
+}
+
+#log {
+  margin-top: 20px;
+  font-size: 18px;
+}
