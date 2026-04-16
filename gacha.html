@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ガチャガチャゲーム</title>
+	<style>
+		:root {
+			--bg-1: #f5f1e8;
+			--bg-2: #d6e6f2;
+			--ink: #102a43;
+			--accent: #e06c2b;
+			--accent-2: #2f855a;
+			--panel: rgba(255, 255, 255, 0.78);
+			--shadow: 0 12px 30px rgba(16, 42, 67, 0.18);
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: "Yu Gothic UI", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+			color: var(--ink);
+			background:
+				radial-gradient(1200px 500px at 10% 0%, rgba(224, 108, 43, 0.18), transparent 70%),
+				radial-gradient(1000px 500px at 100% 100%, rgba(47, 133, 90, 0.2), transparent 75%),
+				linear-gradient(160deg, var(--bg-1), var(--bg-2));
+			display: grid;
+			place-items: center;
+			padding: 20px;
+		}
+
+		.game {
+			width: min(960px, 100%);
+			background: var(--panel);
+			border: 2px solid rgba(16, 42, 67, 0.12);
+			border-radius: 24px;
+			box-shadow: var(--shadow);
+			backdrop-filter: blur(4px);
+			overflow: hidden;
+			animation: riseIn 600ms ease;
+		}
+
+		.header {
+			padding: 22px 24px;
+			background: linear-gradient(100deg, rgba(224, 108, 43, 0.18), rgba(47, 133, 90, 0.18));
+			border-bottom: 1px solid rgba(16, 42, 67, 0.12);
+		}
+
+		.title {
+			margin: 0;
+			font-size: clamp(26px, 4vw, 38px);
+			letter-spacing: 0.05em;
+			font-weight: 800;
+		}
+
+		.subtitle {
+			margin: 6px 0 0;
+			opacity: 0.85;
+			font-size: 14px;
+		}
+
+		.main {
+			display: grid;
+			grid-template-columns: 1.3fr 1fr;
+			gap: 16px;
+			padding: 18px;
+		}
+
+		.machine {
+			position: relative;
+			border-radius: 18px;
+			padding: 20px;
+			background: linear-gradient(180deg, #fff9ea, #e5f2ff);
+			border: 1px solid rgba(16, 42, 67, 0.14);
+			min-height: 420px;
+			overflow: hidden;
+		}
+
+		.machine::before {
+			content: "";
+			position: absolute;
+			inset: 8px;
+			border: 2px dashed rgba(16, 42, 67, 0.15);
+			border-radius: 14px;
+			pointer-events: none;
+		}
+
+		.capsule-window {
+			height: 190px;
+			border-radius: 50% / 45%;
+			background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.9), rgba(192, 220, 243, 0.9));
+			border: 5px solid rgba(16, 42, 67, 0.2);
+			box-shadow: inset 0 -16px 24px rgba(16, 42, 67, 0.18);
+			display: grid;
+			place-items: center;
+			position: relative;
+			margin-bottom: 18px;
+		}
+
+		.capsule {
+			width: 72px;
+			height: 72px;
+			border-radius: 50%;
+			border: 4px solid rgba(16, 42, 67, 0.2);
+			background: linear-gradient(150deg, #ffffff, #ffd7a5);
+			box-shadow: 0 6px 14px rgba(16, 42, 67, 0.2);
+			transition: transform 320ms ease;
+		}
+
+		.capsule.spin {
+			animation: tumble 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+		}
+
+		.lever-wrap {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 16px;
+			margin: 6px 0 14px;
+		}
+
+		.lever-base {
+			width: 160px;
+			height: 22px;
+			border-radius: 999px;
+			background: linear-gradient(180deg, #4f6272, #334e68);
+			box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.25);
+			position: relative;
+		}
+
+		.lever {
+			position: absolute;
+			left: calc(50% - 8px);
+			bottom: 11px;
+			width: 16px;
+			height: 88px;
+			background: linear-gradient(180deg, #6b7c93, #334e68);
+			border-radius: 20px;
+			transform-origin: bottom center;
+			transition: transform 220ms ease;
+		}
+
+		.lever::after {
+			content: "";
+			position: absolute;
+			width: 34px;
+			height: 34px;
+			border-radius: 50%;
+			background: linear-gradient(180deg, #ffe082, #f59e0b);
+			border: 3px solid rgba(16, 42, 67, 0.22);
+			left: -9px;
+			top: -20px;
+		}
+
+		.lever.pull {
+			transform: rotate(30deg);
+		}
+
+		.controls {
+			display: flex;
+			gap: 12px;
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+
+		button {
+			border: none;
+			border-radius: 999px;
+			padding: 12px 22px;
+			font-size: 15px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+		}
+
+		button:active {
+			transform: translateY(1px);
+		}
+
+		.spin-btn {
+			color: #fff;
+			background: linear-gradient(120deg, #e06c2b, #d9480f);
+			box-shadow: 0 8px 18px rgba(224, 108, 43, 0.4);
+		}
+
+		.spin-btn:disabled {
+			cursor: not-allowed;
+			opacity: 0.45;
+			box-shadow: none;
+		}
+
+		.reset-btn {
+			color: var(--ink);
+			background: #fff;
+			border: 1px solid rgba(16, 42, 67, 0.2);
+		}
+
+		.status {
+			margin-top: 16px;
+			padding: 12px;
+			border-radius: 12px;
+			text-align: center;
+			background: rgba(255, 255, 255, 0.8);
+			border: 1px solid rgba(16, 42, 67, 0.16);
+			min-height: 54px;
+			display: grid;
+			place-items: center;
+			font-weight: 700;
+		}
+
+		.result {
+			border-radius: 18px;
+			padding: 16px;
+			background: rgba(255, 255, 255, 0.9);
+			border: 1px solid rgba(16, 42, 67, 0.14);
+			display: flex;
+			flex-direction: column;
+			gap: 14px;
+		}
+
+		.stats {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			gap: 10px;
+		}
+
+		.card {
+			padding: 12px;
+			border-radius: 14px;
+			background: linear-gradient(180deg, #fff, #f7fbff);
+			border: 1px solid rgba(16, 42, 67, 0.14);
+			text-align: center;
+		}
+
+		.card .num {
+			font-size: 24px;
+			font-weight: 900;
+			line-height: 1.1;
+			color: #0f3b66;
+		}
+
+		.card .label {
+			font-size: 12px;
+			opacity: 0.85;
+		}
+
+		.prize-box {
+			border-radius: 14px;
+			padding: 14px;
+			background: linear-gradient(140deg, #f8f4e8, #fff);
+			border: 1px solid rgba(16, 42, 67, 0.16);
+			min-height: 96px;
+		}
+
+		.prize-name {
+			margin: 2px 0 6px;
+			font-size: 22px;
+			font-weight: 900;
+		}
+
+		.rarity {
+			display: inline-block;
+			padding: 4px 10px;
+			border-radius: 999px;
+			font-size: 12px;
+			font-weight: 800;
+			letter-spacing: 0.04em;
+			margin-bottom: 8px;
+		}
+
+		.rarity.common {
+			background: #dbe7f3;
+			color: #486581;
+		}
+
+		.rarity.rare {
+			background: #d9f99d;
+			color: #365314;
+		}
+
+		.rarity.epic {
+			background: #fde68a;
+			color: #78350f;
+		}
+
+		.rarity.legend {
+			background: linear-gradient(120deg, #f59e0b, #ef4444);
+			color: #fff;
+		}
+
+		.collection {
+			border-top: 1px dashed rgba(16, 42, 67, 0.2);
+			padding-top: 12px;
+		}
+
+		.collection h3 {
+			margin: 0 0 8px;
+			font-size: 14px;
+		}
+
+		.items {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			min-height: 28px;
+		}
+
+		.chip {
+			padding: 5px 10px;
+			border-radius: 999px;
+			border: 1px solid rgba(16, 42, 67, 0.2);
+			font-size: 12px;
+			background: #fff;
+			white-space: nowrap;
+		}
+
+		.sparkles {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			overflow: hidden;
+		}
+
+		.sparkles span {
+			position: absolute;
+			width: 8px;
+			height: 8px;
+			background: #fff;
+			border-radius: 50%;
+			opacity: 0;
+			animation: pop 650ms ease forwards;
+		}
+
+		@keyframes tumble {
+			0% { transform: translateY(0) rotate(0deg); }
+			30% { transform: translateY(-14px) rotate(160deg); }
+			70% { transform: translateY(8px) rotate(300deg); }
+			100% { transform: translateY(0) rotate(360deg); }
+		}
+
+		@keyframes riseIn {
+			from { opacity: 0; transform: translateY(12px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+
+		@keyframes pop {
+			0% { opacity: 0; transform: scale(0.4); }
+			35% { opacity: 1; transform: scale(1); }
+			100% { opacity: 0; transform: translateY(-22px) scale(0.6); }
+		}
+
+		@media (max-width: 840px) {
+			.main {
+				grid-template-columns: 1fr;
+			}
+
+			.machine {
+				min-height: auto;
+			}
+		}
+	</style>
+</head>
+<body>
+	<section class="game">
+		<header class="header">
+			<h1 class="title">ガチャガチャ・フィーバー</h1>
+			<p class="subtitle">コインを使ってカプセルをゲット。レアを引き当てよう。</p>
+		</header>
+
+		<div class="main">
+			<div class="machine">
+				<div class="capsule-window">
+					<div id="capsule" class="capsule" aria-hidden="true"></div>
+				</div>
+
+				<div class="lever-wrap">
+					<div class="lever-base">
+						<div id="lever" class="lever" aria-hidden="true"></div>
+					</div>
+				</div>
+
+				<div class="controls">
+					<button id="spinBtn" class="spin-btn">回す（1コイン）</button>
+					<button id="resetBtn" class="reset-btn">リセット</button>
+				</div>
+
+				<div id="status" class="status">スタート！まずは回してみよう。</div>
+				<div id="sparkles" class="sparkles" aria-hidden="true"></div>
+			</div>
+
+			<aside class="result">
+				<div class="stats">
+					<div class="card">
+						<div id="coin" class="num">10</div>
+						<div class="label">コイン</div>
+					</div>
+					<div class="card">
+						<div id="count" class="num">0</div>
+						<div class="label">回した回数</div>
+					</div>
+				</div>
+
+				<div class="prize-box">
+					<span id="rarity" class="rarity common">COMMON</span>
+					<p id="prizeName" class="prize-name">まだ何も出ていません</p>
+					<p id="prizeDesc">「回す」ボタンでガチャ開始。</p>
+				</div>
+
+				<div class="collection">
+					<h3>コレクション（出た景品）</h3>
+					<div id="items" class="items"></div>
+				</div>
+			</aside>
+		</div>
+	</section>
+
+	<script>
+		const spinBtn = document.getElementById("spinBtn");
+		const resetBtn = document.getElementById("resetBtn");
+		const statusEl = document.getElementById("status");
+		const coinEl = document.getElementById("coin");
+		const countEl = document.getElementById("count");
+		const prizeNameEl = document.getElementById("prizeName");
+		const prizeDescEl = document.getElementById("prizeDesc");
+		const rarityEl = document.getElementById("rarity");
+		const itemsEl = document.getElementById("items");
+		const leverEl = document.getElementById("lever");
+		const capsuleEl = document.getElementById("capsule");
+		const sparklesEl = document.getElementById("sparkles");
+
+		const table = [
+			{ name: "わたあめキーホルダー", desc: "ふわふわ感がかわいい人気アイテム。", rarity: "common", label: "COMMON", rate: 45 },
+			{ name: "ミニ宇宙船フィギュア", desc: "机に飾ると気分が上がる。", rarity: "common", label: "COMMON", rate: 30 },
+			{ name: "ネオン猫ステッカー", desc: "光に当てると色味が変わる。", rarity: "rare", label: "RARE", rate: 15 },
+			{ name: "金色ロボピンズ", desc: "バッグに付けると目立つ限定ピンズ。", rarity: "epic", label: "EPIC", rate: 8 },
+			{ name: "虹色ドラゴン像", desc: "超低確率のシークレット景品。", rarity: "legend", label: "LEGEND", rate: 2 }
+		];
+
+		const state = {
+			coin: 10,
+			spins: 0,
+			collection: []
+		};
+
+		function pickPrize() {
+			const roll = Math.random() * 100;
+			let acc = 0;
+			for (const prize of table) {
+				acc += prize.rate;
+				if (roll <= acc) {
+					return prize;
+				}
+			}
+			return table[0];
+		}
+
+		function updateStats() {
+			coinEl.textContent = String(state.coin);
+			countEl.textContent = String(state.spins);
+			spinBtn.disabled = state.coin <= 0;
+		}
+
+		function renderCollection() {
+			itemsEl.innerHTML = "";
+			if (state.collection.length === 0) {
+				const chip = document.createElement("span");
+				chip.className = "chip";
+				chip.textContent = "まだコレクションなし";
+				itemsEl.appendChild(chip);
+				return;
+			}
+
+			state.collection.forEach((item) => {
+				const chip = document.createElement("span");
+				chip.className = "chip";
+				chip.textContent = item;
+				itemsEl.appendChild(chip);
+			});
+		}
+
+		function sparkleBurst(color) {
+			sparklesEl.innerHTML = "";
+			for (let i = 0; i < 20; i += 1) {
+				const dot = document.createElement("span");
+				dot.style.left = `${Math.random() * 95}%`;
+				dot.style.top = `${40 + Math.random() * 40}%`;
+				dot.style.background = color;
+				dot.style.animationDelay = `${Math.random() * 180}ms`;
+				sparklesEl.appendChild(dot);
+			}
+		}
+
+		function rarityColor(rarity) {
+			if (rarity === "legend") return "#ef4444";
+			if (rarity === "epic") return "#f59e0b";
+			if (rarity === "rare") return "#84cc16";
+			return "#60a5fa";
+		}
+
+		function spin() {
+			if (state.coin <= 0 || spinBtn.disabled) {
+				statusEl.textContent = "コインが足りない！リセットして続けよう。";
+				return;
+			}
+
+			state.coin -= 1;
+			state.spins += 1;
+			updateStats();
+
+			spinBtn.disabled = true;
+			statusEl.textContent = "ガチャを回しています...";
+
+			leverEl.classList.add("pull");
+			capsuleEl.classList.add("spin");
+
+			window.setTimeout(() => {
+				const prize = pickPrize();
+
+				prizeNameEl.textContent = prize.name;
+				prizeDescEl.textContent = prize.desc;
+				rarityEl.textContent = prize.label;
+				rarityEl.className = `rarity ${prize.rarity}`;
+
+				if (!state.collection.includes(prize.name)) {
+					state.collection.push(prize.name);
+				}
+
+				renderCollection();
+				sparkleBurst(rarityColor(prize.rarity));
+
+				if (prize.rarity === "legend") {
+					statusEl.textContent = "超大当たり！レジェンド景品をゲット！";
+				} else if (prize.rarity === "epic") {
+					statusEl.textContent = "すごい！エピック景品だ！";
+				} else if (prize.rarity === "rare") {
+					statusEl.textContent = "ナイス！レア景品を引いた！";
+				} else {
+					statusEl.textContent = "コモン景品をゲット！もう一回いく？";
+				}
+
+				leverEl.classList.remove("pull");
+				capsuleEl.classList.remove("spin");
+				updateStats();
+			}, 900);
+		}
+
+		function resetGame() {
+			state.coin = 10;
+			state.spins = 0;
+			state.collection = [];
+
+			prizeNameEl.textContent = "まだ何も出ていません";
+			prizeDescEl.textContent = "「回す」ボタンでガチャ開始。";
+			rarityEl.textContent = "COMMON";
+			rarityEl.className = "rarity common";
+			statusEl.textContent = "リセット完了！もう一度チャレンジしよう。";
+			sparklesEl.innerHTML = "";
+
+			updateStats();
+			renderCollection();
+		}
+
+		spinBtn.addEventListener("click", spin);
+		resetBtn.addEventListener("click", resetGame);
+
+		updateStats();
+		renderCollection();
+	</script>
+</body>
+</html>
