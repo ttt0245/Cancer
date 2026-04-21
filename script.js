@@ -1,7 +1,33 @@
 const gachaMessage = document.getElementById('gachaMessage');
 const handle = document.getElementById('handle');
 
-if (handle) {
+const ensureAuthenticated = async () => {
+  try {
+    const response = await fetch('api/me.php', { method: 'GET' });
+    if (!response.ok) {
+      window.location.href = 'index.html';
+      return false;
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      window.location.href = 'index.html';
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    window.location.href = 'index.html';
+    return false;
+  }
+};
+
+const initGacha = async () => {
+  const isAuthenticated = await ensureAuthenticated();
+  if (!isAuthenticated || !handle) {
+    return;
+  }
+
   let isPointerDown = false;
   let lastAngle = 0;
   let currentRotation = 0;
@@ -55,5 +81,7 @@ if (handle) {
   handle.addEventListener('pointercancel', () => {
     isPointerDown = false;
   });
-}
+};
+
+initGacha();
 

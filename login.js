@@ -117,14 +117,27 @@ const validateRegister = () => {
   return { username, password };
 };
 
-const registerUserDraft = (userData) => {
-  // TODO: DB接続時にここをAPI通信へ置き換える
-  return Promise.resolve({
-    success: true,
-    user: {
-      username: userData.username,
+const postJson = async (url, payload) => {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify(payload),
   });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (error) {
+    throw new Error('サーバー応答の形式が不正です。');
+  }
+
+  if (!response.ok) {
+    throw new Error(data.message || 'サーバーエラーが発生しました。');
+  }
+
+  return data;
 };
 
 setupPasswordToggles();
@@ -147,11 +160,27 @@ const validateLogin = () => {
   return true;
 };
 
-loginForm.addEventListener('submit', (event) => {
+loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  if (validateLogin()) {
-    window.location.href = 'gacha.html';
+  if (!validateLogin()) {
+    return;
+  }
+
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+
+  try {
+    const result = await postJson('api/login.php', { username, password });
+    if (result.success) {
+      sessionStorage.setItem('currentUser', result.user.username);
+      window.location.href = 'gacha.html';
+      return;
+    }
+
+    loginError.textContent = result.message || 'ログインに失敗しました。';
+  } catch (error) {
+    loginError.textContent = error.message;
   }
 });
 
@@ -167,18 +196,25 @@ registerForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  const result = await registerUserDraft(registerData);
+  try {
+    const result = await postJson('api/register.php', registerData);
 
-  if (result.success) {
-    registerForm.reset();
-    updatePasswordStrength('');
-    registerSuccess.textContent = '登録フォームの送信に成功しました。次はDB連携を実装してください。';
+    if (result.success) {
+      registerForm.reset();
+      updatePasswordStrength('');
+      registerSuccess.textContent = '登録が完了しました。ログインしてください。';
 
-    const loginUsername = document.getElementById('username');
-    loginUsername.value = result.user.username;
+      const loginUsername = document.getElementById('username');
+      loginUsername.value = result.user.username;
 
-    window.setTimeout(() => {
-      switchToLogin();
-    }, 900);
+      window.setTimeout(() => {
+        switchToLogin();
+      }, 900);
+      return;
+    }
+
+    registerError.textContent = result.message || '登録に失敗しました。';
+  } catch (error) {
+    registerError.textContent = `登録に失敗しました: ${error.message}`;
   }
 });
