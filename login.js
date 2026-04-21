@@ -13,7 +13,7 @@ const registerStrengthFill = document.getElementById('registerStrengthFill');
 const registerStrengthText = document.getElementById('registerStrengthText');
 
 const strengthLabels = ['未入力', 'とても弱い', '弱い', '普通', '強い', 'とても強い'];;
-
+// pasuword
 const updatePasswordStrength = (password) => {
   let score = 0;
   //ss
