@@ -22,7 +22,7 @@ const updatePasswordStrength = (password) => {
     score = 0;
   } else {
     score = 1;
-
+//
     if (password.length >= 8) {
       score += 1;
     }
