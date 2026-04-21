@@ -174,7 +174,7 @@ loginForm.addEventListener('submit', async (event) => {
     const result = await postJson('api/login.php', { username, password });
     if (result.success) {
       sessionStorage.setItem('currentUser', result.user.username);
-      window.location.href = 'gacha.html';
+      window.location.href = 'gacha.php';
       return;
     }
 

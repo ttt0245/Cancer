@@ -1,0 +1,36 @@
+<?php
+
+declare(strict_types=1);
+session_start();
+
+if (!isset($_SESSION['user_id'], $_SESSION['username'])) {
+    header('Location: index.html');
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガチャ</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main>
+      <section class="gacha-page">
+        <div class="gacha">
+          <img src="photo/gacha.png" alt="ガチャ画像">
+          <div class="handle" id="handle">
+            <div class="handle-inner"></div>
+          </div>
+        </div>
+        <div class="gacha-footer">
+          <div class="gacha-message" id="gachaMessage">ハンドルを回してガチャを引こう！</div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js?v=20260421"></script>
+  </body>
+</html>
