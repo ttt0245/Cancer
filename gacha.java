@@ -1,3 +1,0 @@
-gacha.java
-a
-aa

@@ -58,28 +58,42 @@ const initGacha = async () => {
     lastAngle = getAngle(event);
   });
 
+let spinAmount = 0; // 回した量を記録
+
   handle.addEventListener('pointermove', (event) => {
-    if (!isPointerDown) return;
-    const angle = getAngle(event);
-    let delta = angle - lastAngle;
+  if (!isPointerDown) return;
 
-    if (delta > Math.PI) delta -= 2 * Math.PI;
-    if (delta < -Math.PI) delta += 2 * Math.PI;
+  const angle = getAngle(event);
+  let delta = angle - lastAngle;
 
-    currentRotation += delta;
-    lastAngle = angle;
-    handle.style.transform = `rotate(${currentRotation}rad)`;
+  // 角度補正
+  if (delta > Math.PI) delta -= 2 * Math.PI;
+  if (delta < -Math.PI) delta += 2 * Math.PI;
+
+  // ❗ 左回り（マイナス）は無視
+  if (delta < 0) delta = 0;
+
+  currentRotation += delta;
+  spinAmount += delta; // 回転量を加算
+  lastAngle = angle;
+
+  handle.style.transform = `rotate(${currentRotation}rad)`;
   });
 
   handle.addEventListener('pointerup', () => {
-    if (isPointerDown) {
+  if (isPointerDown) {
+    // 半回転以上でガチャ発動（πラジアン）
+    if (spinAmount >= Math.PI) {
       finishSpin();
+    } else {
+      if (gachaMessage) {
+        gachaMessage.textContent = 'もっと回してください！';
+      }
     }
-    isPointerDown = false;
-  });
+  }
 
-  handle.addEventListener('pointercancel', () => {
-    isPointerDown = false;
+  isPointerDown = false;
+  spinAmount = 0; // リセット
   });
 };
 
