@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
-session_start();
+startSecureSession();
 
 if (!isset($_SESSION['user_id'], $_SESSION['username'])) {
     jsonResponse(401, [

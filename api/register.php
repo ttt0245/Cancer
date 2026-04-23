@@ -11,9 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ]);
 }
 
+enforceSameOriginForStateChange();
+
 $body = readJsonBody();
 $username = isset($body['username']) ? trim((string) $body['username']) : '';
-$password = isset($body['password']) ? trim((string) $body['password']) : '';
+$password = isset($body['password']) ? (string) $body['password'] : '';
 
 if ($username === '' || $password === '') {
     jsonResponse(400, [
@@ -29,10 +31,24 @@ if (mb_strlen($username) < 3) {
     ]);
 }
 
-if (strlen($password) < 6) {
+if (!preg_match('/\A[a-zA-Z0-9_]{3,50}\z/', $username)) {
     jsonResponse(400, [
         'success' => false,
-        'message' => 'パスワードは6文字以上で入力してください。',
+        'message' => 'ユーザー名は3〜50文字の半角英数字とアンダースコアのみ使用できます。',
+    ]);
+}
+
+if (strlen($password) < 8 || strlen($password) > 128) {
+    jsonResponse(400, [
+        'success' => false,
+        'message' => 'パスワードは8〜128文字で入力してください。',
+    ]);
+}
+
+if (!preg_match('/[A-Za-z]/', $password) || !preg_match('/\d/', $password)) {
+    jsonResponse(400, [
+        'success' => false,
+        'message' => 'パスワードは英字と数字をそれぞれ1文字以上含めてください。',
     ]);
 }
 

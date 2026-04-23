@@ -3,7 +3,10 @@ const handle = document.getElementById('handle');
 
 const ensureAuthenticated = async () => {
   try {
-    const response = await fetch('api/me.php', { method: 'GET' });
+    const response = await fetch('api/me.php', {
+      method: 'GET',
+      credentials: 'same-origin',
+    });
     if (!response.ok) {
       window.location.href = 'index.html';
       return false;

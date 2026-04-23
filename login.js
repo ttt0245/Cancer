@@ -90,8 +90,8 @@ const switchToRegister = () => {
 
 const validateRegister = () => {
   const username = document.getElementById('registerUsername').value.trim();
-  const password = document.getElementById('registerPassword').value.trim();
-  const passwordConfirm = document.getElementById('registerPasswordConfirm').value.trim();
+  const password = document.getElementById('registerPassword').value;
+  const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
 
   if (!username || !password || !passwordConfirm) {
     registerError.textContent = 'すべての項目を入力してください。';
@@ -103,8 +103,18 @@ const validateRegister = () => {
     return false;
   }
 
-  if (password.length < 6) {
-    registerError.textContent = 'パスワードは6文字以上で入力してください。';
+  if (!/^[A-Za-z0-9_]{3,50}$/.test(username)) {
+    registerError.textContent = 'ユーザー名は3〜50文字の半角英数字とアンダースコアのみ使用できます。';
+    return false;
+  }
+
+  if (password.length < 8 || password.length > 128) {
+    registerError.textContent = 'パスワードは8〜128文字で入力してください。';
+    return false;
+  }
+
+  if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+    registerError.textContent = 'パスワードは英字と数字をそれぞれ1文字以上含めてください。';
     return false;
   }
 
@@ -120,6 +130,7 @@ const validateRegister = () => {
 const postJson = async (url, payload) => {
   const response = await fetch(url, {
     method: 'POST',
+    credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -149,7 +160,7 @@ registerPasswordInput.addEventListener('input', () => {
 
 const validateLogin = () => {
   const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
+  const password = document.getElementById('password').value;
 
   if (!username || !password) {
     loginError.textContent = 'ユーザー名とパスワードを両方入力してください。';
@@ -168,7 +179,7 @@ loginForm.addEventListener('submit', async (event) => {
   }
 
   const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
+  const password = document.getElementById('password').value;
 
   try {
     const result = await postJson('api/login.php', { username, password });
