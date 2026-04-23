@@ -167,6 +167,16 @@ const validateLogin = () => {
     return false;
   }
 
+  if (!/^[A-Za-z0-9_]{3,50}$/.test(username)) {
+    loginError.textContent = 'ユーザー名は3〜50文字の半角英数字とアンダースコアのみ使用できます。';
+    return false;
+  }
+
+  if (password.length < 8 || password.length > 128) {
+    loginError.textContent = 'パスワードは8〜128文字で入力してください。';
+    return false;
+  }
+
   loginError.textContent = '';
   return true;
 };
